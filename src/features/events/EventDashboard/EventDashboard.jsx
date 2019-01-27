@@ -58,13 +58,16 @@ const eventsDashboard = [
 class EventDashboard extends Component {
   state = {
     events: eventsDashboard,
-    isOpen: false
+    isOpen: false,
+    selectedEvent: null
   };
 
   handleFormOpen = () => {
     this.setState({
+      //SelectedEvent For editing or viewings a specific event
+      selectedEvent: null,
       isOpen: true
-    });
+    }); 
   };
 
   handleCancel = () => {
@@ -72,6 +75,27 @@ class EventDashboard extends Component {
       isOpen: false
     });
   };
+  handleUpdateEvent = (updatedEvent) => {
+    this.setState({
+      events: this.state.events.map(event => {
+        if(event.id === updatedEvent.id) {
+          return Object.assign({}, updatedEvent);
+        } else {
+          return event
+        }
+      }),
+      isOpen: false,
+      selectedEvent: null
+    })
+  }
+
+  handleOpenEvent = (eventToOpen) => () => {
+    this.setState({
+      selectedEvent: eventToOpen,
+      isOpen: true
+    })
+  };
+
   handleCreateEvent = (newEvent) => {
     newEvent.id = cuid
     newEvent.hostPhotoURL = '/assets/user.png';
@@ -81,12 +105,22 @@ class EventDashboard extends Component {
       isOpen: false
     })
   }
+  handleDeleteEvent = (eventId) => () => {
+    const updatedEvents = this.state.events.filter(e => e.id !== eventId);
+    this.setState({
+      events: updatedEvents
+    })
+  }
 
   render() {
+    const { selectedEvent } = this.state
     return (
       <Grid>
         <Grid.Column width={10}>
-          <EventList events={this.state.events} />
+          <EventList
+           deleteEvent={this.handleDeleteEvent}
+           onEventOpen={this.handleOpenEvent} 
+           events={this.state.events} />
         </Grid.Column>
         <Grid.Column width={6}>
           <Button
@@ -95,7 +129,12 @@ class EventDashboard extends Component {
             content="Create Event"
           />
           {this.state.isOpen && (
-          <EventForm createEvent={this.handleCreateEvent} handleCancel={this.handleCancel} />
+          <EventForm 
+          updatedEvent={this.handleUpdateEvent}
+          selectedEvent={selectedEvent}
+          createEvent={this.handleCreateEvent}
+          handleCancel={this.handleCancel} 
+          />
           )}
         </Grid.Column>
       </Grid>
